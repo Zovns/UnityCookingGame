@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float walkSpeed = 7f;
     [SerializeField] private float turnSpeed = 25f;
     [SerializeField] private GameInput gameInput;
+    private float playerHeight = 2.2f;
     private float playerWidth = .65f;
     private bool isWalking = false;
 
@@ -21,15 +22,34 @@ public class PlayerController : MonoBehaviour
         {
             transform.position += amountToAdd;
         }
-        transform.forward = Vector3.Slerp(transform.forward, movingDirection, Time.deltaTime * turnSpeed);
+        else
+        {
+            Vector3 newMovingDirection = new Vector3(inputDirection.x, 0, 0).normalized;
+            amountToAdd = newMovingDirection * walkSpeed * Time.deltaTime;
+            if (CanMove(newMovingDirection, amountToAdd))
+            {
+                transform.position += amountToAdd;
+            }
+            else
+            {
+                newMovingDirection = new Vector3(0, 0, inputDirection.y).normalized;
+                amountToAdd = newMovingDirection * walkSpeed * Time.deltaTime;
+                if (CanMove(newMovingDirection, amountToAdd))
+                {
+                    transform.position += amountToAdd;
+                }
+            }
+        }
+       
+
+         transform.forward = Vector3.Slerp(transform.forward, movingDirection, Time.deltaTime * turnSpeed);
 
     }
     private bool CanMove(Vector3 direction,Vector3 positionToAdd)
     {
         RaycastHit hit;
-        bool canMove = !Physics.Raycast(transform.position, direction,out hit,positionToAdd.magnitude + playerWidth);
-        //Debug.Log(hit.transform);
-      //  Debug.Log(canMove);
+        bool canMove = !Physics.CapsuleCast(transform.position,transform.position + new Vector3(0,playerHeight,0), playerWidth,direction, out hit, positionToAdd.magnitude);
+       
         return canMove;
     }
     public bool IsWalking()
